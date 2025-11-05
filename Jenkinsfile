@@ -27,8 +27,6 @@
                 }
             }
         }
-
-
         stage('Deploy') {
             steps {
                 script {
