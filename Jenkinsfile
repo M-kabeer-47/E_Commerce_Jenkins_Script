@@ -1,9 +1,10 @@
- pipeline {
+pipeline {
     agent any
 
     environment {
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
         PROJECT_NAME = 'ecommerce-jenkins'
+        APP_DIR = 'Jenkins_E_Commerce_App'
     }
 
     stages {
@@ -12,21 +13,24 @@
                 script {
                     echo 'Cleaning up previous containers...'
                     sh '''
-                        docker-compose  down -v || true
+                        docker-compose down -v || true
+                        rm -rf ${APP_DIR} || true
                     '''
                 }
             }
         }
 
-        stage('Checkout') {
+        stage('Checkout Application') {
             steps {
                 script {
-                    echo 'Fetching code from GitHub...'
-                    git branch: 'main',
-                        url: 'https://github.com/M-kabeer-47/Jenkins_E_Commerce_App'
+                    echo 'Fetching application code from GitHub...'
+                    sh '''
+                        git clone https://github.com/M-kabeer-47/Jenkins_E_Commerce_App ${APP_DIR}
+                    '''
                 }
             }
         }
+        
         stage('Deploy') {
             steps {
                 script {
@@ -54,11 +58,10 @@
         success {
             echo 'Pipeline completed successfully!'
             echo 'Frontend: http://your-ec2-ip:3001'
-
         }
         failure {
             echo 'Pipeline failed!'
-            sh 'docker-compose -f ${DOCKER_COMPOSE_FILE} -p ${PROJECT_NAME} logs'
+            sh 'docker-compose logs || true'
         }
         always {
             echo 'Cleaning up workspace...'
